@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Profile Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x mb-3"></i>
+                    <h5 class="mb-0">{{ current_user.name or 'User' }}</h5>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    {% if current_user.is_doctor %}
+                        <span class="badge bg-info">Healthcare Professional</span>
+                    {% endif %}
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Activity</h4>
+            </div>
+            <div class="card-body">
+                {% if current_user.is_doctor %}
+                    <h5>Doctor Dashboard</h5>
+                    <p>Welcome to the doctor dashboard! Here, you can manage your recommendations, view patient queries, and more.</p>
+                    <div class="list-group mb-4">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Post Remedy Recommendations</h5>
+                            </div>
+                            <p class="mb-1">Share your expertise on herbal remedies and treatments.</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Contribute Plant Information</h5>
+                            </div>
+                            <p class="mb-1">Add or edit medicinal plant details and their benefits.</p>
+                        </a>
+                    </div>
+                {% else %}
+                    <h5>Your Activity</h5>
+                    <p>Track your saved plants and remedies.</p>
+                    
+                    <h6 class="mt-4">Saved Plants</h6>
+                    <p>You haven't saved any plants yet.</p>
+                    
+                    <h6 class="mt-4">Saved Remedies</h6>
+                    <p>You haven't saved any remedies yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

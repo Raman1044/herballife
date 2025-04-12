@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Plants Encyclopedia{% endblock %}
+
+{% block content %}
+<div class="plants-header text-center mb-5">
+    <h1>Herbal Life Plants Encyclopedia</h1>
+    <p class="lead">Discover the healing power of nature's pharmacy</p>
+</div>
+
+<div class="filter-section mb-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="input-group">
+                <input type="text" id="plants-search" class="form-control" placeholder="Search plants...">
+                <button class="btn btn-success" type="button" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="category-filters my-3 text-center" id="category-filters">
+        <button class="btn btn-outline-success m-1 active" data-category="all">All</button>
+        <!-- Categories will be loaded dynamically -->
+    </div>
+</div>
+
+<div class="plants-container">
+    <div class="row g-4" id="plants-list">
+        <!-- Loading indicator -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading plants...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Plant Modal Template -->
+<div class="modal fade" id="plantModal" tabindex="-1" aria-labelledby="plantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="plantModalLabel">Plant Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="plant-modal-content">
+                <!-- Plant details will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_js %}
+<script>
+// Remove duplicate declarations that might conflict with variables in main.js or search.js
+// Using window namespace to avoid duplicate declaration errors
+if (typeof window.plantCategories === 'undefined') {
+    window.plantCategories = new Set();
+}
+let plantModal;
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize the modal
+    plantModal = new bootstrap.Modal(document.getElementById('plantModal'));
+    
+    // Set up event listeners
+    document.getElementById('search-btn').addEventListener('click', function() {
+        const searchTerm = document.getElementById('plants-search').value;
+        filterPlants(searchTerm);
+    });
+    
+    document.getElementById('plants-search').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            const searchTerm = this.value;
+            filterPlants(searchTerm);
+        }
+    });
+    
+    // Load all plants
+    await loadPlants();
+    
+    // Set up category filters after plants are loaded
+    setupCategoryFilters();
+});
+
+async function loadPlants() {
+    try {
+        const response = await fetch('/api/plants');
+        const data = await response.json();
+        
+        if (!data.plants || data.plants.length === 0) {
+            displayNoPlants();
+            return;
+        }
+        
+        // Store all plants and extract categories
+        const allPlants = data.plants;
+        window.allPlants = allPlants; // Make it globally available for other functions
+        allPlants.forEach(plant => {
+            if (plant.category_info) {
+                window.plantCategories.add({
+                    id: plant.category_info.id,
+                    name: plant.category_info.name.toLowerCase()
+                });
+            } else if (plant.category) {
+                window.plantCategories.add({
+                    id: plant.category_id,
+                    name: plant.category.toLowerCase()
+                });
+            }
+        });
+        
+        // Display all plants initially
+        displayPlants(allPlants);
+        
+    } catch (error) {
+        console.error('Error loading plants:', error);
+        displayError();
+    }
+}
+
+function setupCategoryFilters() {
+    const filtersContainer = document.getElementById('category-filters');
+    
+    // Clear existing filters except 'All'
+    filtersContainer.innerHTML = '<button class="btn btn-outline-success m-1 active" data-category="all">All</button>';
+    
+    // Convert Set to Array for easier manipulation
+    const categoriesArray = Array.from(window.plantCategories);
+    
+    // Add a button for each category
+    categoriesArray.forEach(category => {
+        if (category !== 'all') {
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-success m-1';
+            button.setAttribute('data-category-id', category.id);
+            button.setAttribute('data-category-name', category.name);
+            button.textContent = category.name.charAt(0).toUpperCase() + category.name.slice(1);
+            filtersContainer.appendChild(button);
+        }
+    });
+    
+    // Add click event listeners to category buttons
+    document.querySelectorAll('.category-filters button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.category-filters button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            if (this.getAttribute('data-category') === 'all') {
+                // All categories
+                filterPlantsByCategory('all');
+            } else {
+                // Specific category
+                const categoryId = this.getAttribute('data-category-id');
+                const categoryName = this.getAttribute('data-category-name');
+                filterPlantsByCategory({id: categoryId, name: categoryName});
+            }
+        });
+    });
+}
+
+function filterPlants(searchTerm) {
+    if (!searchTerm) {
+        displayPlants(allPlants);
+        return;
+    }
+    
+    searchTerm = searchTerm.toLowerCase();
+    
+    const filteredPlants = allPlants.filter(plant => 
+        plant.name.toLowerCase().includes(searchTerm) ||
+        plant.scientific_name.toLowerCase().includes(searchTerm) ||
+        plant.description.toLowerCase().includes(searchTerm) ||
+        (plant.benefits && plant.benefits.some(benefit => benefit.toLowerCase().includes(searchTerm)))
+    );
+    
+    displayPlants(filteredPlants);
+}
+
+function filterPlantsByCategory(category) {
+    if (category === 'all') {
+        displayPlants(allPlants);
+        return;
+    }
+    
+    const filteredPlants = allPlants.filter(plant => {
+        if (category.id && plant.category_id) {
+            return parseInt(plant.category_id) === parseInt(category.id);
+        } else if (plant.category_info && category.id) {
+            return parseInt(plant.category_info.id) === parseInt(category.id);
+        } else if (plant.category && category.name) {
+            return plant.category.toLowerCase() === category.name.toLowerCase();
+        }
+        return false;
+    });
+    
+    displayPlants(filteredPlants);
+}
+
+function displayPlants(plants) {
+    const container = document.getElementById('plants-list');
+    
+    if (!plants || plants.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    No plants found matching your criteria.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    plants.forEach(plant => {
+        const plantCard = document.createElement('div');
+        plantCard.className = 'col-md-4 plant-card';
+        plantCard.setAttribute('data-category', (plant.category || '').toLowerCase());
+        
+        // Create benefit badges
+        let benefitBadges = '';
+        if (plant.benefits && plant.benefits.length > 0) {
+            benefitBadges = plant.benefits.map(benefit => 
+                `<span class="badge bg-success me-1">${benefit}</span>`
+            ).join('');
+        }
+        
+        plantCard.innerHTML = `
+            <div class="card h-100 hover-effect">
+                <img src="${plant.image || 'https://via.placeholder.com/500x300?text=No+Image'}" class="card-img-top plant-image" alt="${plant.name}">
+                <div class="card-body">
+                    <h5 class="card-title">${plant.name}</h5>
+                    <p class="card-text">${plant.description ? plant.description.substring(0, 100) + '...' : 'No description available.'}</p>
+                    <div class="plant-properties mb-3">
+                        <span class="property"><i class="fas fa-leaf me-1"></i> Type: ${plant.category || 'Unknown'}</span>
+                        <span class="property"><i class="fas fa-bolt me-1"></i> Scientific: ${plant.scientific_name || 'Unknown'}</span>
+                    </div>
+                    <h6>Health Benefits:</h6>
+                    <div class="benefits-tags">
+                        ${benefitBadges || '<span class="text-muted">No benefits listed</span>'}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary w-100 view-plant-details" data-plant-id="${plant.id}">
+                        <i class="fas fa-info-circle me-1"></i> View Details
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add event listener to view details button
+        plantCard.querySelector('.view-plant-details').addEventListener('click', function() {
+            showPlantModal(plant.id);
+        });
+        
+        container.appendChild(plantCard);
+    });
+}
+
+async function showPlantModal(plantId) {
+    try {
+        // Show loading indicator in modal
+        document.getElementById('plant-modal-content').innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading plant details...</p>
+            </div>
+        `;
+        
+        // Show the modal while loading
+        plantModal.show();
+        
+        // Fetch plant details
+        const response = await fetch(`/api/plants/${plantId}`);
+        const plant = await response.json();
+        
+        // Create benefit list
+        let benefitsList = '';
+        if (plant.benefits && plant.benefits.length > 0) {
+            benefitsList = plant.benefits.map(benefit => `<li>${benefit}</li>`).join('');
+        } else {
+            benefitsList = '<li>No specific benefits listed</li>';
+        }
+        
+        // Update modal content
+        document.getElementById('plantModalLabel').textContent = plant.name;
+        document.getElementById('plant-modal-content').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="${plant.image || 'https://via.placeholder.com/500x300?text=No+Image'}" class="img-fluid rounded mb-3" alt="${plant.name}">
+                </div>
+                <div class="col-md-6">
+                    <h5>Scientific Name</h5>
+                    <p>${plant.scientific_name || 'Not specified'}</p>
+                    
+                    <h5>Category</h5>
+                    <p>${plant.category || 'Not categorized'}</p>
+                    
+                    <h5>Description</h5>
+                    <p>${plant.description || 'No description available.'}</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h5>Health Benefits</h5>
+                <ul>${benefitsList}</ul>
+                
+                <h5>Usage</h5>
+                <p>${plant.usage || 'No specific usage information available.'}</p>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading plant details:', error);
+        document.getElementById('plant-modal-content').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load plant details. Please try again later.
+            </div>
+        `;
+    }
+}
+
+function displayNoPlants() {
+    const container = document.getElementById('plants-list');
+    container.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="alert alert-info">
+                No plants available in the database.
+            </div>
+        </div>
+    `;
+}
+
+function displayError() {
+    const container = document.getElementById('plants-list');
+    container.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="alert alert-danger">
+                Failed to load plants data. Please try again later.
+            </div>
+        </div>
+    `;
+}
+</script>
+{% endblock %}
+{% endblock %}

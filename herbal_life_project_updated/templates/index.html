@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section text-center py-5">
+    <h1 class="display-4 mb-4">Discover the Power of Herbal Life</h1>
+    <p class="lead mb-4">Explore traditional healing wisdom with modern understanding</p>
+    
+    <div class="search-container">
+        <input type="text" 
+                class="form-control form-control-lg" 
+                placeholder="Search plants and remedies..."
+                onkeyup="debounceSearch(this.value)">
+        <div class="search-results"></div>
+    </div>
+</div>
+
+<section class="featured-categories my-5">
+    <h2 class="text-center mb-4 section-title">Featured Categories</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 hover-effect">
+                <div class="card-body text-center">
+                    <i class="fas fa-herb fa-3x mb-3 text-success"></i>
+                    <h5 class="card-title">Medicinal Herbs</h5>
+                    <p class="card-text">Discover powerful healing herbs used in traditional herbal medicine.</p>
+                    <a href="{{ url_for('plants') }}" class="btn btn-outline-success">
+                        <i class="fas fa-leaf me-1"></i> Explore Herbs
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 hover-effect">
+                <div class="card-body text-center">
+                    <i class="fas fa-mortar-pestle fa-3x mb-3 text-success"></i>
+                    <h5 class="card-title">Traditional Remedies</h5>
+                    <p class="card-text">Learn about time-tested herbal healing remedies and preparations.</p>
+                    <a href="{{ url_for('remedies') }}" class="btn btn-outline-success">
+                        <i class="fas fa-mortar-pestle me-1"></i> View Remedies
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 hover-effect">
+                <div class="card-body text-center">
+                    <i class="fas fa-book-medical fa-3x mb-3 text-success"></i>
+                    <h5 class="card-title">Health Guides</h5>
+                    <p class="card-text">Comprehensive guides on traditional herbal medicine practices.</p>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-success">
+                        <i class="fas fa-info-circle me-1"></i> Read More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="featured-plants my-5">
+    <h2 class="text-center mb-4 section-title">Popular Herbal Life Plants</h2>
+    <div class="gallery-grid" id="featured-plants">
+        <!-- Featured plants will be loaded dynamically -->
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block additional_js %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Fetch featured plants from API
+        const response = await fetch('/api/plants?limit=3');
+        const data = await response.json();
+        
+        // Display featured plants
+        displayFeaturedPlants(data.plants);
+    } catch (error) {
+        console.error('Error loading featured plants:', error);
+        document.getElementById('featured-plants').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load featured plants. Please try again later.
+            </div>
+        `;
+    }
+});
+
+function displayFeaturedPlants(plants) {
+    const container = document.getElementById('featured-plants');
+    
+    if (!plants || plants.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                No featured plants available at the moment.
+            </div>
+        `;
+        return;
+    }
+    
+    // Only show up to 3 plants
+    const featuredPlants = plants.slice(0, 3);
+    
+    container.innerHTML = featuredPlants.map(plant => `
+        <div class="plant-card card hover-effect" data-category="${plant.category?.toLowerCase() || 'herbs'}">
+            <img src="${plant.image || 'https://via.placeholder.com/500x300?text=No+Image'}" class="plant-image" alt="${plant.name}">
+            <div class="card-body">
+                <h5 class="card-title">${plant.name}</h5>
+                <p class="card-text">${plant.description?.substring(0, 100)}...</p>
+                <div class="benefits-tags">
+                    ${plant.benefits.slice(0, 2).map(benefit => 
+                        `<span class="badge bg-success me-1">${benefit}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+</script>
+{% endblock %}
+{% endblock %}

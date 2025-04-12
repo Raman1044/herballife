@@ -1,0 +1,586 @@
+:root {
+    --nature-green: #2c5f2d;
+    --leaf-accent: #97bc62;
+    --vibrant-green: #4CAF50;
+    --turmeric-yellow: #FFC107;
+    --neem-blue: #2196F3;
+    --amla-orange: #FF9800;
+    --brahmi-purple: #9C27B0;
+    --tulsi-teal: #009688;
+    --earth-brown: #795548;
+    --hibiscus-red: #f44336;
+    --card-bg: rgba(255, 255, 255, 0.07);
+    --card-hover-shadow: 0 8px 25px rgba(151, 188, 98, 0.3);
+    --gradient-primary: linear-gradient(135deg, #2c5f2d, #97bc62);
+    --gradient-vibrant: linear-gradient(135deg, var(--vibrant-green), var(--turmeric-yellow));
+    --gradient-cool: linear-gradient(135deg, var(--neem-blue), var(--tulsi-teal));
+    --gradient-warm: linear-gradient(135deg, var(--amla-orange), var(--hibiscus-red));
+    --gradient-dark: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(44, 95, 45, 0.8));
+}
+
+/* Enhanced Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 5px rgba(151, 188, 98, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(151, 188, 98, 0.4); }
+    100% { box-shadow: 0 0 5px rgba(151, 188, 98, 0.2); }
+}
+
+@keyframes borderGlow {
+    0% { border-color: var(--turmeric-yellow); }
+    25% { border-color: var(--vibrant-green); }
+    50% { border-color: var(--neem-blue); }
+    75% { border-color: var(--amla-orange); }
+    100% { border-color: var(--turmeric-yellow); }
+}
+
+@keyframes colorShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.float-animation {
+    animation: floatUp 3s ease-in-out infinite;
+}
+
+/* Colorful hover effects */
+.hover-effect {
+    position: relative;
+    z-index: 1;
+}
+
+.hover-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, 
+        var(--turmeric-yellow), 
+        var(--vibrant-green), 
+        var(--neem-blue), 
+        var(--brahmi-purple), 
+        var(--amla-orange));
+    background-size: 400% 400%;
+    z-index: -1;
+    opacity: 0;
+    border-radius: 15px;
+    transition: opacity 0.3s ease;
+}
+
+.hover-effect:hover::before {
+    opacity: 0.15;
+    animation: colorShift 5s ease infinite;
+}
+
+/* Enhanced Navigation */
+.navbar {
+    backdrop-filter: blur(10px);
+    background: var(--gradient-dark) !important;
+    border-bottom: 1px solid rgba(151, 188, 98, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+.nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1.2rem;
+    margin: 0 0.3rem;
+    font-weight: 500;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Enhanced Card Styling */
+.card {
+    border: 2px solid transparent;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+    animation: scaleIn 0.5s ease-out;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--leaf-accent);
+    animation: borderGlow 4s infinite;
+}
+
+.card-body {
+    padding: 1.8rem;
+}
+
+.card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background-image: linear-gradient(45deg, var(--vibrant-green), var(--turmeric-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.card-subtitle {
+    color: var(--amla-orange) !important;
+    font-weight: 500;
+}
+
+.card h6.text-success {
+    color: var(--tulsi-teal) !important;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.plant-card, .remedy-card {
+    overflow: hidden;
+    position: relative;
+}
+
+.remedy-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at top right, 
+                rgba(151, 188, 98, 0.1), 
+                transparent 70%);
+    z-index: 0;
+}
+
+.plant-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.plant-card:hover .plant-image {
+    transform: scale(1.08);
+}
+
+/* Ingredients styling */
+.ingredients-list ul {
+    list-style-type: none;
+    padding-left: 0.5rem;
+}
+
+.ingredients-list ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.ingredients-list ul li::before {
+    content: '\f5b7'; /* FA herb icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--vibrant-green);
+}
+
+/* Modal styling */
+.modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header.bg-success {
+    background: linear-gradient(45deg, var(--vibrant-green), var(--leaf-accent)) !important;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(151, 188, 98, 0.2);
+    padding: 1.5rem 2rem;
+}
+
+.border-start.border-success {
+    border-color: var(--vibrant-green) !important;
+    border-width: 3px !important;
+}
+
+/* Enhanced Search Bar */
+.search-container {
+    position: relative;
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.search-container input {
+    background: rgba(255, 255, 255, 0.07);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+}
+
+.search-container input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--leaf-accent);
+    box-shadow: 0 0 15px rgba(151, 188, 98, 0.3);
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bs-dark);
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Enhanced Hero Section */
+.hero-section {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(44, 95, 45, 0.7)),
+                url('https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 25px;
+    margin: 2rem 0;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(151, 188, 98, 0.2), transparent);
+    animation: glowPulse 3s infinite;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 1s ease-out;
+}
+
+.hero-section .lead {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    animation: fadeIn 1.2s ease-out;
+}
+
+/* Enhanced Buttons */
+.btn {
+    border-radius: 12px;
+    padding: 0.8rem 1.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, 
+        var(--turmeric-yellow), 
+        var(--vibrant-green), 
+        var(--neem-blue), 
+        var(--brahmi-purple));
+    background-size: 300% 300%;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    border-radius: 12px;
+}
+
+.btn:hover::before {
+    opacity: 0.2;
+    animation: colorShift 2s ease infinite;
+}
+
+.btn-outline-primary, .btn-outline-success {
+    border-width: 2px;
+    background: rgba(151, 188, 98, 0.1);
+}
+
+.btn-outline-primary:hover, .btn-outline-success:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(151, 188, 98, 0.3);
+}
+
+.btn-success {
+    background: var(--vibrant-green);
+    border-color: var(--vibrant-green);
+}
+
+.btn-success:hover {
+    background: var(--vibrant-green);
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+/* Button icon animation */
+.btn i {
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: translateX(3px);
+}
+
+/* Enhanced Benefits Tags */
+.benefits-tags .badge {
+    transition: all 0.3s ease;
+    margin: 0.3rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    background: var(--gradient-primary);
+}
+
+.benefits-tags .badge:hover {
+    transform: translateY(-3px) scale(1.1);
+    animation: glowPulse 2s infinite;
+}
+
+/* Enhanced Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+}
+
+/* Enhanced Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+    line-height: 1.6;
+}
+
+/* Enhanced Footer */
+footer {
+    background: var(--gradient-dark) !important;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(151, 188, 98, 0.1);
+    padding: 3rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        var(--turmeric-yellow), 
+        var(--vibrant-green), 
+        var(--neem-blue), 
+        var(--brahmi-purple), 
+        var(--amla-orange), 
+        var(--hibiscus-red));
+    z-index: 10;
+}
+
+.social-links a {
+    transition: all 0.3s ease;
+    opacity: 0.8;
+    font-size: 1.5rem;
+    margin: 0 1rem;
+    display: inline-block;
+}
+
+.social-links a:hover {
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+.social-links a:nth-child(1):hover {
+    color: var(--neem-blue) !important;
+}
+
+.social-links a:nth-child(2):hover {
+    color: var(--tulsi-teal) !important;
+}
+
+.social-links a:nth-child(3):hover {
+    color: var(--amla-orange) !important;
+}
+
+/* Plant properties display */
+.plant-properties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.plant-properties .property {
+    background-color: rgba(151, 188, 98, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--leaf-accent);
+}
+
+/* Remedy details */
+.remedy-details {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.category-label, .difficulty-label {
+    background-color: rgba(151, 188, 98, 0.1);
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--leaf-accent);
+}
+
+/* Preparation steps styling */
+.preparation-steps li {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(151, 188, 98, 0.1);
+}
+
+.preparation-steps li:last-child {
+    border-bottom: none;
+}
+
+/* Ingredients list styling */
+.ingredients-list {
+    list-style: none;
+    padding-left: 0.5rem;
+}
+
+.ingredients-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.ingredients-list li::before {
+    content: '\f5b7'; /* FA herb icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--vibrant-green);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.2rem;
+    }
+    
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .plant-image {
+        height: 180px;
+    }
+}

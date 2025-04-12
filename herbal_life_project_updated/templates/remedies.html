@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Herbal Life Remedies{% endblock %}
+
+{% block content %}
+<div class="remedies-header text-center mb-5">
+    <h1>Herbal Life Home Remedies</h1>
+    <p class="lead">Natural healing solutions from ancient wisdom</p>
+</div>
+
+<!-- Doctor Recommended Remedies Section -->
+<div class="doctor-remedies-section mb-5">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h3><i class="fas fa-user-md me-2"></i> Doctor Recommended Remedies</h3>
+            <p class="mb-0">Authentic remedies curated by certified Ayurvedic practitioners</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-4" id="doctor-remedies-list">
+                <!-- Doctor remedies will be loaded here -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading doctor recommendations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="search-section mb-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="input-group">
+                <input type="text" id="remedy-search" class="form-control" placeholder="Search by name, condition or ingredient...">
+                <button class="btn btn-success" type="button" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="filter-section my-3">
+        <h5 class="text-center mb-3">Filter by Category</h5>
+        <div class="category-buttons text-center" id="category-filters">
+            <button class="btn btn-outline-success m-1 active" data-category="all">All</button>
+            <!-- Categories will be loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-4">All Remedies</h3>
+<div class="remedies-container">
+    <div class="row g-4" id="remedies-list">
+        <!-- Loading indicator -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading remedies...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Remedy Modal -->
+<div class="modal fade" id="remedyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remedyModalTitle">Remedy Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="remedyModalBody">
+                <!-- Modal content will be loaded dynamically -->
+                <div class="text-center py-3">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading remedy details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_js %}
+<script>
+// Remove duplicate declarations that might conflict with variables in main.js or search.js
+// Using window namespace to avoid duplicate declaration errors
+if (typeof window.remedyCategories === 'undefined') {
+    window.remedyCategories = new Set();
+}
+let remedyModal;
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize the modal
+    remedyModal = new bootstrap.Modal(document.getElementById('remedyModal'));
+    
+    // Set up event listeners
+    document.getElementById('search-btn').addEventListener('click', function() {
+        const searchTerm = document.getElementById('remedy-search').value;
+        filterRemedies(searchTerm);
+    });
+    
+    document.getElementById('remedy-search').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            const searchTerm = this.value;
+            filterRemedies(searchTerm);
+        }
+    });
+    
+    // Load all remedies
+    await loadRemedies();
+    
+    // Display doctor recommended remedies in special section
+    displayDoctorRecommendedRemedies();
+    
+    // Set up category filters after remedies are loaded
+    setupCategoryFilters();
+});
+
+async function loadRemedies() {
+    try {
+        const response = await fetch('/api/remedies');
+        const data = await response.json();
+        
+        if (!data.remedies || data.remedies.length === 0) {
+            displayNoRemedies();
+            return;
+        }
+        
+        // Store all remedies and extract categories
+        const allRemedies = data.remedies;
+        window.allRemedies = allRemedies; // Make it globally available for other functions
+        allRemedies.forEach(remedy => {
+            if (remedy.category_info) {
+                window.remedyCategories.add({
+                    id: remedy.category_info.id,
+                    name: remedy.category_info.name.toLowerCase()
+                });
+            } else if (remedy.category) {
+                window.remedyCategories.add({
+                    id: remedy.category_id,
+                    name: remedy.category.toLowerCase()
+                });
+            }
+        });
+        
+        // Display all remedies initially
+        displayRemedies(allRemedies);
+        
+    } catch (error) {
+        console.error('Error loading remedies:', error);
+        displayError();
+    }
+}
+
+function setupCategoryFilters() {
+    const filtersContainer = document.getElementById('category-filters');
+    
+    // Clear existing filters except 'All'
+    filtersContainer.innerHTML = '<button class="btn btn-outline-success m-1 active" data-category="all">All</button>';
+    
+    // Convert Set to Array for easier manipulation
+    const categoriesArray = Array.from(window.remedyCategories);
+    
+    // Add a button for each category
+    categoriesArray.forEach(category => {
+        if (category !== 'all') {
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-success m-1';
+            button.setAttribute('data-category-id', category.id);
+            button.setAttribute('data-category-name', category.name);
+            button.textContent = category.name.charAt(0).toUpperCase() + category.name.slice(1);
+            filtersContainer.appendChild(button);
+        }
+    });
+    
+    // Add click event listeners to category buttons
+    document.querySelectorAll('.category-buttons button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.category-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            if (this.getAttribute('data-category') === 'all') {
+                // All categories
+                filterRemediesByCategory('all');
+            } else {
+                // Specific category
+                const categoryId = this.getAttribute('data-category-id');
+                const categoryName = this.getAttribute('data-category-name');
+                filterRemediesByCategory({id: categoryId, name: categoryName});
+            }
+        });
+    });
+}
+
+function filterRemedies(searchTerm) {
+    if (!searchTerm) {
+        displayRemedies(allRemedies);
+        return;
+    }
+    
+    searchTerm = searchTerm.toLowerCase();
+    
+    const filteredRemedies = allRemedies.filter(remedy => {
+        // Check name, description, and category
+        const nameMatch = remedy.name.toLowerCase().includes(searchTerm);
+        const descriptionMatch = remedy.description.toLowerCase().includes(searchTerm);
+        const categoryMatch = remedy.category && remedy.category.toLowerCase().includes(searchTerm);
+        
+        // Check ingredients
+        const ingredientMatch = remedy.ingredients && remedy.ingredients.some(ingredient => 
+            ingredient.toLowerCase().includes(searchTerm)
+        );
+        
+        // Check benefits
+        const benefitMatch = remedy.benefits && remedy.benefits.some(benefit => 
+            benefit.toLowerCase().includes(searchTerm)
+        );
+        
+        return nameMatch || descriptionMatch || categoryMatch || ingredientMatch || benefitMatch;
+    });
+    
+    displayRemedies(filteredRemedies);
+}
+
+function filterRemediesByCategory(category) {
+    if (category === 'all') {
+        displayRemedies(allRemedies);
+        return;
+    }
+    
+    const filteredRemedies = allRemedies.filter(remedy => {
+        if (category.id && remedy.category_id) {
+            return parseInt(remedy.category_id) === parseInt(category.id);
+        } else if (remedy.category_info && category.id) {
+            return parseInt(remedy.category_info.id) === parseInt(category.id);
+        } else if (remedy.category && category.name) {
+            return remedy.category.toLowerCase() === category.name.toLowerCase();
+        }
+        return false;
+    });
+    
+    displayRemedies(filteredRemedies);
+}
+
+function displayRemedies(remedies) {
+    const container = document.getElementById('remedies-list');
+    
+    if (!remedies || remedies.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    No remedies found matching your criteria.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    remedies.forEach((remedy, index) => {
+        const remedyCard = document.createElement('div');
+        remedyCard.className = 'col-md-4 remedy-card';
+        remedyCard.setAttribute('data-category', (remedy.category || '').toLowerCase());
+        
+        // Build the ingredients list
+        let ingredientsList = '';
+        if (remedy.ingredients && remedy.ingredients.length > 0) {
+            ingredientsList = remedy.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('');
+        } else {
+            ingredientsList = '<li>No ingredients listed</li>';
+        }
+        
+        // Check if remedy has doctor information
+        const doctorBadge = remedy.doctor ? 
+            `<div class="doctor-badge mb-2">
+                <span class="badge bg-info text-dark">
+                    <i class="fas fa-user-md me-1"></i> Recommended by Dr. ${remedy.doctor.name}
+                </span>
+            </div>` : '';
+            
+        remedyCard.innerHTML = `
+            <div class="card h-100 hover-effect ${remedy.doctor ? 'border-info' : ''}">
+                <div class="card-body">
+                    <h5 class="card-title">${remedy.name}</h5>
+                    ${doctorBadge}
+                    <p class="card-text">${remedy.short_description || ''}</p>
+                    <div class="remedy-details mb-3">
+                        <span class="category-label"><i class="fas fa-tag me-1"></i> ${remedy.category || 'Uncategorized'}</span>
+                        <span class="difficulty-label">
+                            <i class="fas fa-chart-simple me-1"></i> 
+                            Difficulty: ${remedy.difficulty || 'Medium'}
+                        </span>
+                    </div>
+                    <h6>Main Ingredients:</h6>
+                    <ul class="ingredients-list">
+                        ${ingredientsList}
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary w-100 view-recipe" data-remedy-id="${remedy.id}">
+                        <i class="fas fa-mortar-pestle me-1"></i> View Recipe
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add event listener to view recipe button
+        remedyCard.querySelector('.view-recipe').addEventListener('click', function() {
+            const remedyId = this.getAttribute('data-remedy-id');
+            showRecipeModal(remedyId);
+        });
+        
+        container.appendChild(remedyCard);
+    });
+}
+
+async function showRecipeModal(remedyId) {
+    try {
+        // Show loading indicator in modal
+        document.getElementById('remedyModalBody').innerHTML = `
+            <div class="text-center py-3">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading remedy details...</p>
+            </div>
+        `;
+        
+        // Show the modal while loading
+        remedyModal.show();
+        
+        // Fetch remedy details
+        const response = await fetch(`/api/remedies/${remedyId}`);
+        const remedy = await response.json();
+        
+        // Update modal title
+        document.getElementById('remedyModalTitle').textContent = remedy.name;
+        
+        // Build ingredients list
+        let ingredientsList = '';
+        if (remedy.ingredients && remedy.ingredients.length > 0) {
+            ingredientsList = remedy.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('');
+        } else {
+            ingredientsList = '<li>No ingredients listed</li>';
+        }
+        
+        // Build preparation steps
+        let preparationSteps = '';
+        if (remedy.preparation_steps && remedy.preparation_steps.length > 0) {
+            preparationSteps = remedy.preparation_steps.map((step, index) => 
+                `<li><strong>Step ${index + 1}:</strong> ${step}</li>`
+            ).join('');
+        } else {
+            preparationSteps = '<li>No preparation steps provided</li>';
+        }
+        
+        // Build benefits list
+        let benefitsList = '';
+        if (remedy.benefits && remedy.benefits.length > 0) {
+            benefitsList = remedy.benefits.map(benefit => `<li>${benefit}</li>`).join('');
+        } else {
+            benefitsList = '<li>No specific benefits listed</li>';
+        }
+        
+        // Check for doctor recommendation
+        const doctorInfo = remedy.doctor ? 
+            `<div class="doctor-info alert alert-info mt-3">
+                <h5><i class="fas fa-user-md me-2"></i>Doctor's Recommendation</h5>
+                <p>This remedy is recommended by Dr. ${remedy.doctor.name}, a certified Ayurvedic practitioner.</p>
+            </div>` : '';
+            
+        // Set modal body
+        document.getElementById('remedyModalBody').innerHTML = `
+            ${doctorInfo}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-mortar-pestle me-2"></i>Ingredients</h5>
+                    <ul class="ingredients-list">
+                        ${ingredientsList}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5><i class="fas fa-tag me-2"></i>Category</h5>
+                    <p>${remedy.category || 'Uncategorized'}</p>
+                    
+                    <h5><i class="fas fa-chart-simple me-2"></i>Difficulty</h5>
+                    <p>${remedy.difficulty || 'Medium'}</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h5><i class="fas fa-info-circle me-2"></i>Description</h5>
+                <p>${remedy.description || 'No description available.'}</p>
+                
+                <h5><i class="fas fa-list-ol me-2"></i>Preparation</h5>
+                <ol class="preparation-steps">
+                    ${preparationSteps}
+                </ol>
+                
+                <h5><i class="fas fa-hand-holding-medical me-2"></i>Usage</h5>
+                <p>${remedy.usage || 'No usage information provided.'}</p>
+                
+                <div class="benefits-section mt-3">
+                    <h5><i class="fas fa-check-circle me-2"></i>Benefits</h5>
+                    <ul>
+                        ${benefitsList}
+                    </ul>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading remedy details:', error);
+        document.getElementById('remedyModalBody').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load remedy details. Please try again later.
+            </div>
+        `;
+    }
+}
+
+function displayNoRemedies() {
+    const container = document.getElementById('remedies-list');
+    container.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="alert alert-info">
+                No remedies available in the database.
+            </div>
+        </div>
+    `;
+}
+
+function displayError() {
+    const container = document.getElementById('remedies-list');
+    container.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="alert alert-danger">
+                Failed to load remedies data. Please try again later.
+            </div>
+        </div>
+    `;
+}
+
+function displayDoctorRecommendedRemedies() {
+    const container = document.getElementById('doctor-remedies-list');
+    
+    // Filter remedies that have doctor recommendations
+    const doctorRemedies = allRemedies.filter(remedy => remedy.doctor);
+    
+    if (!doctorRemedies || doctorRemedies.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    No doctor-recommended remedies available yet.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    // Group remedies by doctor
+    const remediesByDoctor = {};
+    doctorRemedies.forEach(remedy => {
+        const doctorName = remedy.doctor.name;
+        if (!remediesByDoctor[doctorName]) {
+            remediesByDoctor[doctorName] = [];
+        }
+        remediesByDoctor[doctorName].push(remedy);
+    });
+    
+    // Display remedies by doctor
+    Object.keys(remediesByDoctor).forEach(doctorName => {
+        const doctorColumn = document.createElement('div');
+        doctorColumn.className = 'col-md-4 mb-4';
+        
+        let doctorRemediesList = '';
+        remediesByDoctor[doctorName].forEach(remedy => {
+            doctorRemediesList += `
+                <div class="card mb-3 hover-effect border-info">
+                    <div class="card-body">
+                        <h5 class="card-title">${remedy.name}</h5>
+                        <p class="card-text small">${remedy.short_description || ''}</p>
+                        <button class="btn btn-sm btn-outline-info view-doctor-recipe" data-remedy-id="${remedy.id}">
+                            <i class="fas fa-mortar-pestle me-1"></i> View Recipe
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        doctorColumn.innerHTML = `
+            <div class="doctor-header mb-3">
+                <h4 class="text-info"><i class="fas fa-user-md me-2"></i>Dr. ${doctorName}</h4>
+                <p class="small text-muted">Certified Ayurvedic Practitioner</p>
+            </div>
+            <div class="doctor-remedies">
+                ${doctorRemediesList}
+            </div>
+        `;
+        
+        container.appendChild(doctorColumn);
+    });
+    
+    // Add event listeners to view recipe buttons
+    document.querySelectorAll('.view-doctor-recipe').forEach(button => {
+        button.addEventListener('click', function() {
+            const remedyId = this.getAttribute('data-remedy-id');
+            showRecipeModal(remedyId);
+        });
+    });
+}
+</script>
+{% endblock %}
+{% endblock %}
