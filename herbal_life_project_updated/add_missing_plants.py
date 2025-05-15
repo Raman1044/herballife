@@ -5,7 +5,7 @@ import logging
 from app import app, db
 from models import Plant, PlantCategory, PlantImage, Benefit, plant_benefits
 
-# Configure logging
+# logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(name)s:%(message)s')
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def get_or_create_benefit(name):
 def add_missing_plants():
     """Add missing plants from the provided data"""
     with app.app_context():
-        # Data for plants that were not found
+        
         missing_plants = [
             {
                 "name": "Aloe Vera",
