@@ -84,6 +84,13 @@ python app.py
 - 💼 www.linkedin.com/in/raman-yadav-9b7738229
 
 ---
+## Screen Shots:-
+<img width="1864" height="910" alt="image" src="https://github.com/user-attachments/assets/cd158acb-b4f0-42e8-bbd5-258771607197" />
+<img width="1522" height="904" alt="image" src="https://github.com/user-attachments/assets/9270622d-4c7f-4c1b-af3c-c9ff02c01c36" />
+<img width="1731" height="905" alt="image" src="https://github.com/user-attachments/assets/9bafc4e9-ff4b-4abd-abfe-0f2934d2e111" />
+<img width="1604" height="918" alt="image" src="https://github.com/user-attachments/assets/0225506a-d2b7-4a23-9f80-1db55a9719ef" />
+<img width="1710" height="914" alt="image" src="https://github.com/user-attachments/assets/427542df-5861-4b6b-80b3-df8db9c68b4d" />
+<img width="1736" height="893" alt="image" src="https://github.com/user-attachments/assets/8c400d82-44e2-4804-887e-f96eebb11bd4" />
 
 ## 📌 Note
 This project was developed as a Final Year Major Project for B.tech. CSIT.
